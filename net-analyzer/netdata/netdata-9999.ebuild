@@ -21,14 +21,21 @@ HOMEPAGE="https://github.com/firehol/netdata https://my-netdata.io/"
 
 LICENSE="GPL-3+ MIT BSD"
 SLOT="0"
-IUSE="+compression nfacct nodejs"
+IUSE="+compression nfacct nodejs mysql python"
 
 # most unconditional dependencies are for plugins.d/charts.d.plugin:
 RDEPEND="
 	>=app-shells/bash-4:0
 	net-misc/curl
-	net-misc/wget
+	python? (
+		dev-lang/python:*
+		dev-python/pyyaml
+	)
 	virtual/awk
+	mysql? (
+		python? ( || ( dev-python/pymysql dev-python/mysqlclient ) )
+		!python? ( virtual/mysql )
+	)
 	compression? ( sys-libs/zlib )
 	nfacct? (
 		net-firewall/nfacct
@@ -67,8 +74,9 @@ src_configure() {
 src_install() {
 	default
 
-	fowners ${NETDATA_USER}:${NETDATA_GROUP} /var/log/netdata
-	fowners ${NETDATA_USER}:${NETDATA_GROUP} /var/cache/netdata
+	fowners ${NETDATA_USER}:${NETDATA_GROUP} /var/log/${PN}
+	fowners ${NETDATA_USER}:${NETDATA_GROUP} /var/lib/${PN}
+	fowners ${NETDATA_USER}:${NETDATA_GROUP} /var/cache/${PN}
 
 	chown -Rc ${NETDATA_USER}:${NETDATA_GROUP} "${ED}"/usr/share/${PN} || die
 
