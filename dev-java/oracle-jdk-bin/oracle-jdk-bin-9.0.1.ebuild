@@ -7,36 +7,46 @@ inherit eutils java-vm-2 prefix versionator
 
 JDK_URI="https://jdk9.java.net/download/"
 
-BUILD_NUMBER="$(get_version_component_range 4)"
-MY_PV="$(get_version_component_range 1)+${BUILD_NUMBER}"
+MY_PV="$(get_version_component_range 1-3)"
 
 # This is a list of archs supported by this update.
 # Currently arm comes and goes.
-AT_AVAILABLE=( arm arm64 amd64 x86 x64-solaris sparc64-solaris x64-macos )
+AT_AVAILABLE=( amd64 sparc64-solaris x64-macos )
+DEMOS_AVAILABLE=( )
 
 AT_amd64="jdk-${MY_PV}_linux-x64_bin.tar.gz"
 AT_arm="jdk-${MY_PV}_linux-arm32-vfp-hflt_bin.tar.gz"
 AT_arm64="jdk-${MY_PV}_linux-arm64-vfp-hflt_bin.tar.gz"
 AT_x86="jdk-${MY_PV}_linux-x86_bin.tar.gz"
 AT_x64_solaris="jdk-${MY_PV}_solaris-x64_bin.tar.gz"
-AT_sparc64_solaris="${AT_sparc_solaris} jdk-${MY_PV}_solaris-sparcv9_bin.tar.gz"
+AT_sparc64_solaris="jdk-${MY_PV}_solaris-sparcv9_bin.tar.gz"
 AT_x64_macos="jdk-${MY_PV}_osx-x64_bin.dmg"
+DEMOS_amd64="jdk-${MY_PV}-linux-x64_bin-demos.tar.gz"
+DEMOS_arm="jdk-${MY_PV}-linux-arm32-vfp-hflt_bin-demos.tar.gz"
+DEMOS_arm64="jdk-${MY_PV}-linux-arm64-vfp-hflt_bin-demos.tar.gz"
+DEMOS_x86="jdk-${MY_PV}-linux-i586_bin-demos.tar.gz"
+DEMOS_x64_solaris="jdk-${MY_PV}-solaris-x64_bin-demos.tar.gz"
+DEMOS_sparc64_solaris="jdk-${MY_PV}-solaris-sparcv9_bin-demos.tar.gz"
+DEMOS_x64_macos="jdk-${MY_PV}-macosx-x86_64_bin-demos.zip"
 
 DESCRIPTION="Oracle's Java SE Development Kit"
 HOMEPAGE="http://jdk.java.net/$(get_version_component_range 1)/"
-for d in "${AT_AVAILABLE[@]}"; do
-	SRC_URI+=" ${d}? ( http://download.java.net/java/jdk$(get_version_component_range 1)/archive/${BUILD_NUMBER}/binaries/$(eval "echo \${$(echo AT_${d/-/_})}")"
+for file in "${AT_AVAILABLE[@]}"; do
+	SRC_URI+=" ${file}? ( $(eval "echo \${$(echo AT_${file/-/_})}")"
+	if has ${file} "${DEMOS_AVAILABLE[@]}"; then
+		SRC_URI+=" examples? ( $(eval "echo \${$(echo DEMOS_${file/-/_})}") )"
+	fi
 	SRC_URI+=" )"
 done
-unset d
+unset file
 
 LICENSE="Oracle-EADLA" # will probably change to Oracle-BCLA-JavaSE when released
 SLOT="$(get_version_component_range 1)"
 KEYWORDS="~arm ~arm64 ~amd64 ~x86 ~amd64-linux ~x86-linux ~x64-macos ~sparc64-solaris ~x64-solaris"
-IUSE="alsa cups doc +fontconfig headless-awt javafx nsplugin selinux source"
+IUSE="alsa cups doc examples +fontconfig headless-awt javafx nsplugin selinux source visualvm"
 REQUIRED_USE="javafx? ( alsa fontconfig )"
 
-RESTRICT="preserve-libs strip"
+RESTRICT="preserve-libs fetch strip"
 QA_PREBUILT="*"
 
 # NOTES:
@@ -82,6 +92,44 @@ RDEPEND="!x64-macos? (
 DEPEND="app-arch/zip"
 
 S="${WORKDIR}/jdk"
+
+check_tarballs_available() {
+	local uri=$1; shift
+	local dl= unavailable=
+	for dl in "${@}" ; do
+		[[ ! -f "${DISTDIR}/${dl}" ]] && unavailable+=" ${dl}"
+	done
+
+	if [[ -n "${unavailable}" ]] ; then
+		if [[ -z ${_check_tarballs_available_once} ]] ; then
+			einfo
+			einfo "Oracle requires you to download the needed files manually after"
+			einfo "accepting their license through a javascript capable web browser."
+			einfo
+			_check_tarballs_available_once=1
+		fi
+		einfo "Download the following files:"
+		for dl in ${unavailable}; do
+			einfo "  ${dl}"
+		done
+		einfo "at '${uri}'"
+		einfo "and move them to '${DISTDIR}'"
+		einfo
+		einfo "If the above mentioned urls do not point to the correct version anymore,"
+		einfo "please download the files from Oracle's java download archive:"
+		einfo
+		einfo "   http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html#jdk-${MY_PV}-oth-JPR"
+		einfo
+	fi
+}
+
+pkg_nofetch() {
+	local distfiles=( $(eval "echo \${$(echo AT_${ARCH/-/_})}") )
+	if use examples && has ${ARCH} "${DEMOS_AVAILABLE[@]}"; then
+		distfiles+=( $(eval "echo \${$(echo DEMOS_${ARCH/-/_})}") )
+	fi
+	check_tarballs_available "${JDK_URI}" "${distfiles[@]}"
+}
 
 src_unpack() {
 	if use x64-macos ; then
@@ -154,8 +202,16 @@ src_install() {
 	# provided, they generally lag behind what Gentoo has available.
 	rm -vf lib/*/libavplugin* || die
 
+	# Packaged as dev-util/visualvm but some users prefer this version.
+	use visualvm || find -name "*visualvm*" -exec rm -vfr {} + || die
+
+	dodoc legal/java.base/COPYRIGHT
 	dodir "${dest}"
 	cp -pPR bin include lib "${ddest}" || die
+
+	if use examples && has ${ARCH} "${DEMOS_AVAILABLE[@]}" ; then
+		cp -pPR demo sample "${ddest}" || die
+	fi
 
 	if use nsplugin ; then
 		local nsplugin_link=${nsplugin##*/}
