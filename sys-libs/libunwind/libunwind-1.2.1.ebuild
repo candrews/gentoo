@@ -13,8 +13,8 @@ SRC_URI="mirror://nongnu/libunwind/${MY_P}.tar.gz"
 
 LICENSE="MIT"
 SLOT="7"
-KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
-IUSE="debug debug-frame doc libatomic lzma static-libs"
+KEYWORDS="amd64 arm ~arm64 ~hppa ia64 ~mips ppc ppc64 x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
+IUSE="debug debug-frame doc libatomic lzma +static-libs"
 
 RESTRICT="test" # half of tests are broken (toolchain version dependent)
 
@@ -44,10 +44,14 @@ MULTILIB_WRAPPED_HEADERS=(
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-1.2-coredump-regs.patch #586092
+	"${FILESDIR}"/${PN}-1.2-ia64-undwarf.patch
+	"${FILESDIR}"/${PN}-1.2-ia64-ptrace-coredump.patch
+	"${FILESDIR}"/${PN}-1.2-ia64-missing.patch
 )
 
 src_prepare() {
 	default
+	chmod +x src/ia64/mk_cursor_i || die
 	# Since we have tests disabled via RESTRICT, disable building in the subdir
 	# entirely.  This worksaround some build errors too. #484846
 	sed -i -e '/^SUBDIRS/s:tests::' Makefile.in || die
@@ -75,6 +79,11 @@ multilib_src_configure() {
 		$(use_enable static-libs static) \
 		$(use_enable debug conservative_checks) \
 		$(use_enable debug)
+}
+
+multilib_src_compile() {
+	# Bug 586208
+	CCACHE_NODIRECT=1 default
 }
 
 multilib_src_test() {
