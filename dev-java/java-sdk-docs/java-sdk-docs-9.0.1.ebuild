@@ -5,12 +5,14 @@ EAPI="6"
 
 inherit versionator
 
-SRC_URI="http://download.java.net/java/jdk$(get_version_component_range 1)/archive/$(get_version_component_range 4)/binaries/jdk-$(get_version_component_range 1)_doc-api-spec.tar.gz -> ${P}.tar.gz"
+SRC_URI="jdk-${PV}_doc-all.zip"
 DESCRIPTION="Oracle's documentation bundle (including API) for Java SE"
-HOMEPAGE="http://jdk.java.net/$(get_version_component_range 1)/"
-LICENSE="Oracle-EADLA" # will probably change to oracle-java-documentation-9 (or something like it) when released
+HOMEPAGE="http://download.oracle.com/javase/$(get_version_component_range 1)/docs/"
+LICENSE="oracle-java-documentation-$(get_version_component_range 1)"
 SLOT="$(get_version_component_range 1)"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86 ~amd64-linux ~x86-linux"
+
+RESTRICT="fetch"
 
 DEPEND="app-arch/unzip"
 
