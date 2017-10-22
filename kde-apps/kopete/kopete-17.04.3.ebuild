@@ -21,7 +21,7 @@ RESTRICT+=" test"
 #	alias: NO DEPS (disabled upstream)
 #	autoreplace: NO DEPS
 #	contactnotes: NO DEPS
-#	cryptography: kde-apps/kdepim-common-libs:4 or kde-apps/libkleo:4
+#	cryptography: kde-apps/libkleo:4
 #	highlight: NO DEPS
 #	history: NO DEPS
 #	latex: virtual/latex as RDEPEND
@@ -71,16 +71,9 @@ COMMONDEPEND="
 	kde-frameworks/kdelibs:4[zeroconf?]
 	media-libs/phonon[qt4]
 	media-libs/qimageblitz[-qt5(-)]
-	!aqua? (
-		x11-libs/libX11
-		x11-libs/libXScrnSaver
-	)
-	cryptography? (
-		|| (
-			$(add_kdeapps_dep kdepim-common-libs)
-			$(add_kdeapps_dep libkleo '' 4.4.2016.01-r1)
-		)
-	)
+	x11-libs/libX11
+	x11-libs/libXScrnSaver
+	cryptography? ( $(add_kdeapps_dep libkleo '' 4.4.2016.01-r1) )
 	gadu? ( >=net-libs/libgadu-1.8.0[threads] )
 	groupwise? ( app-crypt/qca:2[qt4(+)] )
 	jingle? (
@@ -117,8 +110,8 @@ RDEPEND="${COMMONDEPEND}
 	winpopup? ( net-fs/samba )
 "
 DEPEND="${COMMONDEPEND}
+	x11-proto/scrnsaverproto
 	jingle? ( dev-libs/jsoncpp )
-	!aqua? ( x11-proto/scrnsaverproto )
 "
 
 PATCHES=( "${FILESDIR}/${PN}-17.04.0-kde4qgpgme.patch" )

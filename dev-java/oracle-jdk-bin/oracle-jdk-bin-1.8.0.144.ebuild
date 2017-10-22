@@ -38,7 +38,7 @@ DEMOS_amd64="jdk-${MY_PV}-linux-x64-demos.tar.gz"
 DEMOS_arm="jdk-${MY_PV}-linux-arm32-vfp-hflt-demos.tar.gz"
 DEMOS_arm64="jdk-${MY_PV}-linux-arm64-vfp-hflt-demos.tar.gz"
 DEMOS_x86="jdk-${MY_PV}-linux-i586-demos.tar.gz"
-DEMOS_x64_solaris="jdk-${MY_PV}-solaris-amd64-demos.tar.gz"
+DEMOS_x64_solaris="jdk-${MY_PV}-solaris-x64-demos.tar.gz"
 DEMOS_sparc64_solaris="jdk-${MY_PV}-solaris-sparcv9-demos.tar.gz"
 DEMOS_x64_macos="jdk-${MY_PV}-macosx-x86_64-demos.zip"
 
@@ -59,7 +59,7 @@ SRC_URI+=" jce? ( ${JCE_FILE} )"
 
 LICENSE="Oracle-BCLA-JavaSE examples? ( BSD )"
 SLOT="1.8"
-KEYWORDS="amd64 ~arm ~arm64 ~x86 ~amd64-linux ~x86-linux ~x64-macos ~sparc64-solaris ~x64-solaris"
+KEYWORDS="amd64 ~arm ~arm64 x86 ~amd64-linux ~x86-linux ~x64-macos ~sparc64-solaris ~x64-solaris"
 IUSE="alsa commercial cups derby doc examples +fontconfig headless-awt javafx jce nsplugin selinux source visualvm"
 REQUIRED_USE="javafx? ( alsa fontconfig )"
 

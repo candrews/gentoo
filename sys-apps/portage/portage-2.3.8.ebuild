@@ -16,7 +16,7 @@ DESCRIPTION="Portage is the package management and distribution system for Gento
 HOMEPAGE="https://wiki.gentoo.org/wiki/Project:Portage"
 
 LICENSE="GPL-2"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~sparc-fbsd ~x86-fbsd"
+KEYWORDS="alpha amd64 arm ~arm64 hppa ia64 ~m68k ~mips ppc ppc64 ~s390 ~sh sparc x86 ~amd64-fbsd ~sparc-fbsd ~x86-fbsd"
 SLOT="0"
 IUSE="build doc epydoc +ipc linguas_ru +native-extensions selinux xattr"
 
@@ -129,11 +129,14 @@ python_prepare_all() {
 			-i cnf/make.globals || die "sed failed"
 
 		einfo "Adjusting repos.conf ..."
-		sed -e "s|^\(main-repo = \).*|\\1gentoo_prefix|" \
-			-e "s|^\\[gentoo\\]|[gentoo_prefix]|" \
-			-e "s|^\(location = \)\(/usr/portage\)|\\1${EPREFIX}\\2|" \
-			-e "s|^\(sync-uri = \).*|\\1rsync://rsync.prefix.bitzolder.nl/gentoo-portage-prefix|" \
+		sed -e "s|^\(location = \)\(/usr/portage\)|\\1${EPREFIX}\\2|" \
 			-i cnf/repos.conf || die "sed failed"
+		if prefix-guest ; then
+			sed -e "s|^\(main-repo = \).*|\\1gentoo_prefix|" \
+				-e "s|^\\[gentoo\\]|[gentoo_prefix]|" \
+				-e "s|^\(sync-uri = \).*|\\1rsync://rsync.prefix.bitzolder.nl/gentoo-portage-prefix|" \
+				-i cnf/repos.conf || die "sed failed"
+		fi
 
 		einfo "Adding FEATURES=force-prefix to make.globals ..."
 		echo -e '\nFEATURES="${FEATURES} force-prefix"' >> cnf/make.globals \
