@@ -5,33 +5,33 @@ EAPI="6"
 
 inherit eutils java-vm-2 prefix versionator
 
-BUILD_NUMBER="$(get_version_component_range 4)"
-MY_PV="$(get_version_component_range 1)+${BUILD_NUMBER}"
+MY_PV="$(get_version_component_range 1-3)"
+
+JRE_URI="http://www.oracle.com/technetwork/java/javase/downloads/jre9-downloads-3848532.html"
 
 # This is a list of archs supported by this update.
 # Currently arm comes and goes.
-AT_AVAILABLE=( amd64 x86 x64-solaris sparc64-solaris x64-macos )
+AT_AVAILABLE=( amd64 sparc64-solaris x64-macos )
 
 AT_amd64="jre-${MY_PV}_linux-x64_bin.tar.gz"
 AT_x86="jre-${MY_PV}_linux-x86_bin.tar.gz"
 AT_x64_solaris="jre-${MY_PV}_solaris-x64_bin.tar.gz"
-AT_sparc64_solaris="${AT_sparc_solaris} jre-${MY_PV}_solaris-sparcv9_bin.tar.gz"
+AT_sparc64_solaris="jre-${MY_PV}_solaris-sparcv9_bin.tar.gz"
 AT_x64_macos="jre-${MY_PV}_osx-x64_bin.dmg"
 
 DESCRIPTION="Oracle's Java SE Runtime Environment"
-HOMEPAGE="http://jdk.java.net/$(get_version_component_range 4)/"
-for d in "${AT_AVAILABLE[@]}"; do
-	SRC_URI+=" ${d}? ( http://download.java.net/java/jdk$(get_version_component_range 1)/archive/${BUILD_NUMBER}/binaries/$(eval "echo \${$(echo AT_${d/-/_})}")"
-	SRC_URI+=" )"
+HOMEPAGE="http://www.oracle.com/technetwork/java/javase/"
+for file in "${AT_AVAILABLE[@]}"; do
+	SRC_URI+=" ${file}? ( $(eval "echo \${$(echo AT_${file/-/_})}") )"
 done
-unset d
+unset file
 
 LICENSE="Oracle-EADLA" # will probably change to Oracle-BCLA-JavaSE when released
-SLOT="$(get_version_component_range 4)"
+SLOT="$(get_version_component_range 1)"
 KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux ~x64-macos ~sparc64-solaris ~x64-solaris"
 IUSE="alsa commercial cups +fontconfig headless-awt javafx nsplugin selinux"
 
-RESTRICT="preserve-libs strip"
+RESTRICT="preserve-libs fetch strip"
 QA_PREBUILT="*"
 
 # NOTES:
@@ -76,6 +76,23 @@ RDEPEND="!x64-macos? (
 DEPEND="app-arch/zip"
 
 S="${WORKDIR}/jre"
+
+pkg_nofetch() {
+	local AT_ARCH="AT_${ARCH}"
+	local AT="${!AT_ARCH}"
+
+	einfo "Please download '${AT}' from:"
+	einfo "'${JRE_URI}'"
+	einfo "and move it to '${DISTDIR}'"
+
+	einfo
+	einfo "If the above mentioned url does not point to the correct version anymore,"
+	einfo "please download the files from Oracle's java download archive:"
+	einfo
+	einfo "   http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase9-3934878.html#jre-${MY_PV}-oth-JPR"
+	einfo
+
+}
 
 src_unpack() {
 	default
