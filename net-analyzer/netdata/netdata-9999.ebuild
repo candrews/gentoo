@@ -19,8 +19,9 @@ HOMEPAGE="https://github.com/netdata/netdata https://my-netdata.io/"
 
 LICENSE="GPL-3+ MIT BSD"
 SLOT="0"
-IUSE="caps +compression cpu_flags_x86_sse2 cups +dbengine ipmi +jsonc kinesis mongodb mysql nfacct nodejs postgres prometheus +python tor xen"
+IUSE="caps cloud +compression cpu_flags_x86_sse2 cups +dbengine ipmi +jsonc kinesis mongodb mysql nfacct nodejs postgres prometheus +python tor xen"
 REQUIRED_USE="
+	cloud? ( caps jsonc )
 	mysql? ( python )
 	python? ( ${PYTHON_REQUIRED_USE} )
 	tor? ( python )"
@@ -99,6 +100,7 @@ src_configure() {
 		--localstatedir="${EPREFIX}"/var \
 		--with-user=netdata \
 		$(use_enable jsonc) \
+		$(use_enable cloud) \
 		$(use_enable cups plugin-cups) \
 		$(use_enable dbengine) \
 		$(use_enable nfacct plugin-nfacct) \
